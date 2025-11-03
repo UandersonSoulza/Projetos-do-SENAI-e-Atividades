@@ -1,0 +1,38 @@
+body{
+    background: url('../imagens/pudim.jpg');
+    background-size: cover;
+    background-repeat: no-repeat;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    }
+    
+    img{
+     height: 250px;
+    
+    }
+    
+    .base {
+        background:rgba(255, 255, 255, 0.158);
+        width: fit-content;
+        padding: 20px; 
+        border-radius: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+        gap: 15px;
+        backdrop-filter: blur(20px);
+    }
+    
+    .base button{
+        background: rgb(231, 231, 108);
+        font-size: 18px;
+        color: rgb(0, 0, 0);
+        width: 100px;
+        cursor: pointer;
+        border-radius: 5px;
+        border-color: chocolate;
+        margin-top: 5px;
+    }

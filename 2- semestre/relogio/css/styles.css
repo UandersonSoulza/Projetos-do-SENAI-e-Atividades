@@ -1,0 +1,55 @@
+@font-face{
+    font-family: clock;
+    src: url('/font/digital-7.ttf');
+}
+
+body{
+    background: url(/image/pudim.jpg);
+    background-size: cover;
+    height: 100vh;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+} 
+
+.central{
+    width: 600px;
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(5px);
+    padding: 20px;
+    border-radius: 5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.central div{
+    background: rgb(252, 203, 69);
+    color: white;
+    height: 200px;
+    width: 300px;
+    border: 5p;
+    border-color: #7B3F00;
+    border-radius: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    
+}
+
+.central span{
+    font-size: 150px;
+    font-family: clock;
+}
+
+
+
+
+
+
+
+
+
+
+

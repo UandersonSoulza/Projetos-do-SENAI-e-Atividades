@@ -1,0 +1,45 @@
+body {
+   background-repeat: no-repeat;
+    height: 100vh;
+    background-image:url(../image/pudim-de-leite-condensado-16346.jpg) ;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+}    
+
+.central input {
+    height: 25px;
+    width: 600px;
+    border-radius: 4px;
+   
+
+}
+
+.central {
+    padding: 30px;
+    background: white;
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+    justify-content: center;
+    gap: 7px;
+    border-radius: 10px;
+
+}
+
+.central button {
+    background: linear-gradient(#FFDD00,#FF5F00,#FF2A00);
+    color: white;
+    width: 130px;
+    height: 30px;
+    border-radius: 7px;
+    cursor: pointer;
+
+}
+
+.central p{
+    font-size: 15px;
+}
+
+
