@@ -1,0 +1,38 @@
+-- criando
+CREATE TABLE funcionarios(
+id INT PRIMARY KEY,
+nome VARCHAR (200),
+cargo VARCHAR (200),
+salario FLOAT
+);
+
+-- consultando
+SELECT*FROM funcionarios; 
+
+-- inserindo
+INSERT INTO funcionarios(id,nome,cargo,salario)VALUES(101,'Ana Silva','Desenvolvedor Júnior',3500.00);
+INSERT INTO funcionarios(id,nome,cargo,salario)VALUES(102,'Carlos Oliveira','Analista de Dados',5200.00);
+INSERT INTO funcionarios(id,nome,cargo,salario)VALUES(103,'Juliana Santos','Gerente de Projetos',8000.00);
+
+-- atualizando
+UPDATE funcionarios
+SET cargo ='Desenvolvedor Pleno'
+WHERE id = 101;
+
+UPDATE funcionarios
+SET salario = 4800.00
+WHERE id = 101;
+
+-- excluindo
+DELETE FROM funcionarios
+WHERE id = 102
+
+
+
+
+
+
+
+
+
+
