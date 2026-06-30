@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerenciamento de Pessoas</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+</head>
+<body class="bg-gray-100 font-sans min-h-screen p-6">
+
+    <div class="max-w-4xl mx-auto bg-white p-8 rounded-xl shadow-md">
+        <h1 class="text-3xl font-bold text-gray-800 mb-6 text-center border-b pb-4">Gerenciamento de Pessoas</h1>
+
+        <section class="mb-10 bg-gray-50 p-6 rounded-lg border border-gray-200">
+            <h2 id="form-title" class="text-xl font-semibold text-gray-700 mb-4">Cadastrar Nova Pessoa</h2>
+            
+            <form id="pessoa-form" class="space-y-4">
+                <input type="hidden" id="codigo">
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-600 mb-1">Nome:</label>
+                        <input type="text" id="nome" required class="w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-600 mb-1">Idade:</label>
+                        <input type="number" id="idade" required class="w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500 outline-none">
+                    </div>
+                </div>
+
+                <div class="flex gap-2 justify-end">
+                    <button type="button" id="btn-cancelar" class="hidden px-4 py-2 bg-gray-400 text-white rounded-md hover:bg-gray-500 transition">Cancelar</button>
+                    <button type="submit" id="btn-salvar" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition">Salvar</button>
+                </div>
+            </form>
+        </section>
+
+        <section>
+            <h2 class="text-xl font-semibold text-gray-700 mb-4">Pessoas Cadastradas</h2>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-gray-200 text-gray-700 uppercase text-sm">
+                            <th class="p-3 border-b">Código</th>
+                            <th class="p-3 border-b">Nome</th>
+                            <th class="p-3 border-b">Idade</th>
+                            <th class="p-3 border-b text-center">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabela-corpo" class="text-gray-600">
+                        </tbody>
+                </table>
+            </div>
+        </section>
+    </div>
+
+    <script>
+        // URL base da sua API Spring Boot (ajuste a porta se necessário)
+        const API_URL = "http://localhost:8080/api";
+
+        // Mapeamento dos elementos do DOM
+        const form = document.getElementById('pessoa-form');
+        const inputCodigo = document.getElementById('codigo');
+        const inputNome = document.getElementById('nome');
+        const inputIdade = document.getElementById('idade');
+        const formTitle = document.getElementById('form-title');
+        const btnSalvar = document.getElementById('btn-salvar');
+        const btnCancelar = document.getElementById('btn-cancelar');
+        const tabelaCorpo = document.getElementById('tabela-corpo');
+
+        // Carrega a lista de pessoas assim que a página abre
+        document.addEventListener('DOMContentLoaded', listarPessoas);
+
+        // ================================================
+        // 1. LISTAR PESSOAS (GET)
+        // ================================================
+        async function listarPessoas() {
+            try {
+                // Realiza a requisição GET para a API
+                const resposta = await fetch(API_URL);
+                
+                if (!resposta.ok) throw new Error('Erro ao buscar dados da API');
+                
+                // Converte a resposta em JSON (List<Pessoa>)
+                const pessoas = await resposta.json();
+                
+                // Limpa a tabela antes de renderizar
+                tabelaCorpo.innerHTML = '';
+
+                // Preenche a tabela com as linhas de dados
+                pessoas.forEach(pessoa => {
+                    const tr = document.createElement('tr');
+                    tr.className = "border-b hover:bg-gray-50 transition";
+                    tr.innerHTML = `
+                        <td class="p-3">${pessoa.codigo}</td>
+                        <td class="p-3">${pessoa.nome}</td>
+                        <td class="p-3">${pessoa.idade}</td>
+                        <td class="p-3 text-center flex justify-center gap-2">
+                            <button onclick="prepararEdicao(${pessoa.codigo}, '${pessoa.nome}', ${pessoa.idade})" class="px-3 py-1 bg-yellow-500 text-white rounded hover:bg-yellow-600 text-sm transition">Alterar</button>
+                            <button onclick="removerPessoa(${pessoa.codigo})" class="px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700 text-sm transition">Remover</button>
+                        </td>
+                    `;
+                    tabelaCorpo.appendChild(tr);
+                });
+            } catch (erro) {
+                console.error(erro);
+                alert('Não foi possível conectar com a API. Verifique se o servidor Spring Boot está rodando.');
+            }
+        }
+
+        // ================================================
+        // 2. CADASTRAR / ALTERAR PESSOA (POST / PUT)
+        // ================================================
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault(); // Impede o recarregamento padrão da página
+
+            const codigo = inputCodigo.value;
+            const nome = inputNome.value;
+            const idade = parseInt(inputIdade.value); // Garante que a idade seja enviada como número inteiro
+
+            // Monta o objeto no formato esperado pela classe Pessoa.java
+            const pessoaObjeto = { nome, idade };
+            
+            let metodoHttp = 'POST'; // Padrão é cadastro
+
+            // Se o código existir no campo oculto, muda a estratégia para Edição (PUT)
+            if (codigo) {
+                pessoaObjeto.codigo = parseInt(codigo);
+                metodoHttp = 'PUT';
+            }
+
+            try {
+                // Realiza a chamada Fetch configurando o método dinamicamente
+                const resposta = await fetch(API_URL, {
+                    method: metodoHttp,
+                    headers: {
+                        'Content-Type': 'application/json' // Indica que o corpo é um JSON
+                    },
+                    body: JSON.stringify(pessoaObjeto) // Transforma o objeto JS em texto JSON
+                });
+
+                if (resposta.ok) {
+                    alert(codigo ? 'Dados atualizados com sucesso!' : 'Pessoa cadastrada com sucesso!');
+                    resetarFormulario();
+                    listarPessoas(); // Atualiza a tabela com os novos dados
+                } else {
+                    alert('Erro ao processar requisição no servidor.');
+                }
+            } catch (erro) {
+                console.error(erro);
+                alert('Erro de comunicação com a API.');
+            }
+        });
+
+        // ================================================
+        // 3. REMOVER PESSOA (DELETE)
+        // ================================================
+        async function removerPessoa(codigo) {
+            if (confirm(`Tem certeza que deseja remover a pessoa de código ${codigo}?`)) {
+                try {
+                    // Envia a requisição DELETE passando o código na URL (/api/{codigo})
+                    const resposta = await fetch(`${API_URL}/${codigo}`, {
+                        method: 'DELETE'
+                    });
+
+                    if (resposta.ok) {
+                        alert('Registro removido com sucesso!');
+                        listarPessoas(); // Atualiza a tabela
+                    } else {
+                        alert('Erro ao tentar remover.');
+                    }
+                } catch (erro) {
+                    console.error(erro);
+                    alert('Erro de comunicação ao tentar remover.');
+                }
+            }
+        }
+
+        // ================================================
+        // FUNÇÕES AUXILIARES DE INTERAÇÃO NA TELA
+        // ================================================
+
+        // Prepara os campos do formulário para o modo de Edição (PUT)
+        function prepararEdicao(codigo, nome, idade) {
+            formTitle.innerText = "Alterar Informações";
+            btnSalvar.innerText = "Atualizar";
+            btnCancelar.classList.remove('hidden');
+
+            // Preenche os inputs com os dados da linha selecionada
+            inputCodigo.value = codigo;
+            inputNome.value = nome;
+            inputIdade.value = idade;
+            
+            // Rola a página suavemente até o formulário
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // Reseta o estado do formulário para o modo de Cadastro (POST)
+        function resetarFormulario() {
+            formTitle.innerText = "Cadastrar Nova Pessoa";
+            btnSalvar.innerText = "Salvar";
+            btnCancelar.classList.add('hidden');
+            form.reset();
+            inputCodigo.value = '';
+        }
+
+        // Evento do botão cancelar
+        btnCancelar.addEventListener('click', resetarFormulario);
+    </script>
+</body>
+</html>
