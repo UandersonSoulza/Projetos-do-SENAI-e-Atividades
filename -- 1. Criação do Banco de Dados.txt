@@ -1,0 +1,54 @@
+-- 1. Criação do Banco de Dados
+CREATE DATABASE controle_estoque;
+USE controle_estoque;
+
+-- 2. TABELA: usuarios
+CREATE TABLE usuarios (
+  idusuarios INT NOT NULL AUTO_INCREMENT,
+  login VARCHAR(100) NOT NULL UNIQUE, 
+  senha VARCHAR(100) NOT NULL,
+  PRIMARY KEY(idusuarios)
+) ENGINE=InnoDB;
+
+-- 3. TABELA: categorias
+CREATE TABLE categorias (
+  idcategorias INT NOT NULL AUTO_INCREMENT,
+  nome_categoria VARCHAR(100) NOT NULL,
+  PRIMARY KEY(idcategorias)
+) ENGINE=InnoDB;
+
+-- 4. TABELA: produtos
+CREATE TABLE produtos (
+  idprodutos INT NOT NULL AUTO_INCREMENT,
+  categorias_idcategorias INT NOT NULL,
+  usuarios_idusuarios INT NOT NULL,
+  nome_produtos VARCHAR(100) NOT NULL,
+  quantidade_produto INT NOT NULL DEFAULT 0,
+  preco DECIMAL(10,2) NOT NULL,
+  PRIMARY KEY(idprodutos),
+  
+  -- Chaves Estrangeiras (Relacionamentos)
+  FOREIGN KEY(usuarios_idusuarios) REFERENCES usuarios(idusuarios),
+  FOREIGN KEY(categorias_idcategorias) REFERENCES categorias(idcategorias)
+) ENGINE=InnoDB;
+
+CREATE INDEX produtos_FKIndex1 ON produtos (usuarios_idusuarios);
+CREATE INDEX produtos_FKIndex2 ON produtos (categorias_idcategorias);
+
+-- 5. TABELA: movimentacoes
+CREATE TABLE movimentacoes (
+  idmovimentacoes INT NOT NULL AUTO_INCREMENT,
+  usuarios_idusuarios INT NOT NULL,
+  produtos_idprodutos INT NOT NULL,
+  quantidade_movimentacao INT NOT NULL,
+  tipo_movimentacao VARCHAR(7) NOT NULL, -- Onde salvará 'ENTRADA' ou 'SAIDA'
+  data_movimentacao DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, -- Preenche a data/hora atual automaticamente
+  PRIMARY KEY(idmovimentacoes),
+  
+  -- Chaves Estrangeiras (Relacionamentos)
+  FOREIGN KEY(produtos_idprodutos) REFERENCES produtos(idprodutos) ON DELETE CASCADE,
+  FOREIGN KEY(usuarios_idusuarios) REFERENCES usuarios(idusuarios)
+) ENGINE=InnoDB;
+
+CREATE INDEX movimentacoes_FKIndex1 ON movimentacoes (produtos_idprodutos);
+CREATE INDEX movimentacoes_FKIndex2 ON movimentacoes (usuarios_idusuarios);
