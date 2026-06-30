@@ -1,0 +1,10 @@
+{
+  "outputDirectory": "LOUISE_PROJEC-main/public",
+  "buildCommand": "npm run build",
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
+}

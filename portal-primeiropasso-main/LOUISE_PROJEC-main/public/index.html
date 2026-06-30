@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portal Primeiro Passo — Supabase</title>
+    <!-- Google Fonts -->
+    <link
+        href="https://fonts.googleapis.com/css2?family=Fraunces:wght@600;700&family=DM+Sans:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <!-- NOTIFICAÇÃO TOAST PARA FEEDBACK RÁPIDO -->
+    <div id="toast-feedback" class="toast-feedback">
+        <span id="toast-icon">✨</span>
+        <span id="toast-message">Mensagem de feedback</span>
+    </div>
+
+    <!-- CONFIGURAÇÃO COMPLEMENTAR DO SUPABASE (Interface de Contingência e Produção) -->
+    <div id="modal-config" class="modal-config-overlay" style="display: none;">
+        <div class="login-box config-wizard-box">
+            <div class="login-logo">Conectar <span>Supabase</span></div>
+            <p class="login-subtitle" style="margin-bottom: 20px;">Nenhum arquivo local 'config.js' foi detectado. Para
+                testar ou rodar online com segurança, insira os dados do seu próprio projeto Supabase:</p>
+
+            <div class="input-group">
+                <label for="c-url">Supabase Project URL</label>
+                <input type="url" id="c-url" class="login-input" placeholder="https://xxxx.supabase.co">
+            </div>
+
+            <div class="input-group">
+                <label for="c-key">Supabase Anon Key (Public)</label>
+                <input type="password" id="c-key" class="login-input" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6...">
+            </div>
+
+            <button class="login-btn" onclick="salvarConfigWizard()">Conectar Banco de Dados</button>
+            <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 15px; line-height: 1.4;">Essas
+                credenciais serão salvas com segurança apenas no armazenamento local do seu navegador (localStorage) e
+                não serão expostas ao GitHub.</p>
+        </div>
+    </div>
+
+    <!-- MODAL DE CRIAÇÃO DE ALUNO (Exclusivo do Professor) -->
+    <div id="criar-aluno-section" class="modal-aluno-overlay">
+        <div class="login-box config-wizard-box" style="border-style: solid;">
+            <div class="login-logo">Novo <span>Aluno</span></div>
+            <p class="login-subtitle" style="margin-bottom: 20px;">Cadastre uma nova credencial de acesso para estudante no portal:</p>
+
+            <div class="input-group">
+                <label for="c-aluno-nome">Nome Completo</label>
+                <input type="text" id="c-aluno-nome" class="login-input" placeholder="Ex: Lucas Silva" required>
+            </div>
+
+            <div class="input-group">
+                <label for="c-aluno-login">Nome de Usuário (Login)</label>
+                <input type="text" id="c-aluno-login" class="login-input" placeholder="Ex: lucas.silva" required autocomplete="username">
+            </div>
+
+            <div class="input-group">
+                <label for="c-aluno-senha">Senha de Acesso (Mín. 6 chars)</label>
+                <input type="password" id="c-aluno-senha" class="login-input" placeholder="••••••••" required autocomplete="new-password">
+            </div>
+
+            <div style="display: flex; gap: 10px; margin-top: 25px;">
+                <button class="login-btn" id="btn-criar-aluno" style="flex: 2;" onclick="criarAluno()">Cadastrar Aluno</button>
+                <button class="login-btn btn-secondary" style="flex: 1; background: rgba(255,255,255,0.05); color: white; border: 1px solid rgba(255,255,255,0.1);" onclick="document.getElementById('criar-aluno-section').style.display='none'">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- TELA DE LOGIN -->
+    <section id="tela-login">
+        <div class="login-box">
+            <div class="login-logo">Primeiro <span>Passo</span></div>
+            <p class="login-subtitle">Entre na sua conta para acessar o portal acadêmico</p>
+
+            <div class="profile-selector">
+                <button class="profile-btn active" id="btn-aluno" onclick="setPerfil('aluno')">Sou Aluno</button>
+                <button class="profile-btn" id="btn-prof" onclick="setPerfil('prof')">Sou Instrutor</button>
+            </div>
+
+            <div class="input-group">
+                <label for="l-user">Usuário</label>
+                <input type="text" id="l-user" class="login-input" placeholder="seu.usuario" autocomplete="username">
+            </div>
+
+            <div class="input-group">
+                <label for="l-pass">Senha</label>
+                <input type="password" id="l-pass" class="login-input" placeholder="••••••••"
+                    autocomplete="current-password">
+            </div>
+
+            <button class="login-btn" onclick="executarLogin()">Entrar na plataforma</button>
+            <p id="l-error" class="error-msg">Acesso negado.</p>
+
+            <!-- Botão discreto para testes de desenvolvimento -->
+
+
+            <!-- Rodapé LGPD para Transparência e Conformidade Legal -->
+            <div class="lgpd-footer">
+                🛡️ <strong>Segurança & LGPD:</strong> Este portal processa dados escolares estritamente para fins
+                pedagógicos de acordo com a Lei Geral de Proteção de Dados (Lei nº 13.709/18). Suas credenciais são
+                encriptadas no tráfego e confidenciais.
+            </div>
+        </div>
+    </section>
+
+    <!-- PLATAFORMA (DASHBOARD) -->
+    <div id="plataforma">
+        <!-- SIDEBAR -->
+        <aside class="sidebar">
+            <div class="sidebar-top">
+                <div class="sidebar-logo">Primeiro <span>Passo</span></div>
+
+                <!-- Identificação do Usuário -->
+                <div class="sidebar-profile">
+                    <div class="profile-avatar" id="profile-avatar-initial">U</div>
+                    <div class="profile-info">
+                        <div class="profile-name" id="side-user-name">Carregando...</div>
+                        <div class="profile-role" id="side-user-role">Aluno</div>
+                    </div>
+                </div>
+
+                <!-- Menu de Navegação -->
+                <nav id="sidebar-nav">
+                    <!-- Itens do Aluno -->
+                    <div class="nav-item" data-role="aluno" id="nav-dash-aluno"
+                        onclick="irParaAba('tab-dashboard-aluno')">
+                        <i>📊</i> <span>Início</span>
+                    </div>
+                    <div class="nav-item" data-role="aluno" id="nav-notas-aluno"
+                        onclick="irParaAba('tab-minhas-notas')">
+                        <i>📝</i> <span>Minhas Notas</span>
+                    </div>
+                    <div class="nav-item" data-role="aluno" id="nav-modulos-aluno" onclick="irParaAba('tab-modulos')">
+                        <i>📚</i> <span>Módulos & Materiais</span>
+                    </div>
+
+                    <!-- Itens do Professor -->
+                    <div class="nav-item" data-role="prof" id="nav-dash-prof" onclick="irParaAba('tab-dashboard-prof')">
+                        <i>📊</i> <span>Início</span>
+                    </div>
+                    <div class="nav-item" data-role="prof" id="nav-lancar-notas"
+                        onclick="irParaAba('tab-lancar-notas')">
+                        <i>✍️</i> <span>Lançar Notas</span>
+                    </div>
+                    <div class="nav-item" data-role="prof" id="nav-docs-alunos"
+                        onclick="irParaAba('tab-documentos-alunos')">
+                        <i>📂</i> <span>Documentos dos Alunos</span>
+                    </div>
+                    <div class="nav-item" data-role="prof" id="nav-criar-aluno"
+                        onclick="document.getElementById('criar-aluno-section').style.display='flex'">
+                        <i>➕</i> <span>Criar Novo Aluno</span>
+                    </div>
+
+                    <!-- Itens Compartilhados -->
+                    <div class="nav-item" id="nav-alterar-senha" onclick="irParaAba('tab-alterar-senha')">
+                        <i>🔑</i> <span>Alterar Senha</span>
+                    </div>
+                </nav>
+            </div>
+
+            <!-- Botão de Sair -->
+            <div class="sidebar-bottom">
+                <div class="logout-btn" onclick="logout()">
+                    <i>🚪</i> <span>Sair da Conta</span>
+                </div>
+            </div>
+        </aside>
+
+    <!-- CONTEÚDO PRINCIPAL -->
+    <main class="main-content">
+        <header class="content-header">
+            <div>
+                <h2>Olá, <span id="user-name">...</span> 👋</h2>
+                <p style="color: var(--text-muted); font-size: 0.9rem;" id="user-welcome-sub">Bem-vindo de volta ao
+                    seu portal acadêmico.</p>
+            </div>
+            <!-- Visível em Mobile para Logout Rápido -->
+            <div class="mobile-header-actions" style="display: none;">
+                <button class="btn btn-secondary" onclick="logout()" style="padding: 8px 12px; font-size: 0.85rem;">🚪
+                    Sair</button>
+            </div>
+        </header>
+
+        <!-- STATS QUICK CARDS (ALUNO) -->
+        <div id="stats-aluno" class="stats-grid" style="display: none;">
+            <div class="stat-card">
+                <div class="stat-icon">🎓</div>
+                <div class="stat-info">
+                    <div class="stat-value" id="stat-media-aluno">-</div>
+                    <div class="stat-label">Média Geral</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">📋</div>
+                <div class="stat-info">
+                    <div class="stat-value" id="stat-notas-count">-</div>
+                    <div class="stat-label">Notas Lançadas</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">🔔</div>
+                <div class="stat-info">
+                    <div class="stat-value" id="stat-prox-modulo">-</div>
+                    <div class="stat-label">Módulo Ativo</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- STATS QUICK CARDS (PROFESSOR) -->
+        <div id="stats-prof" class="stats-grid" style="display: none;">
+            <div class="stat-card">
+                <div class="stat-icon">👨‍🎓</div>
+                <div class="stat-info">
+                    <div class="stat-value" id="stat-total-alunos">-</div>
+                    <div class="stat-label">Alunos Ativos</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">✍️</div>
+                <div class="stat-info">
+                    <div class="stat-value" id="stat-total-notas-lancadas">-</div>
+                    <div class="stat-label">Notas Lançadas</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">📁</div>
+                <div class="stat-info">
+                    <div class="stat-value" id="stat-total-docs">-</div>
+                    <div class="stat-label">Documentos Gravados</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================= ABAS DO PORTAL ================= -->
+
+        <!-- ABA: DASHBOARD ALUNO -->
+        <section id="tab-dashboard-aluno" class="tab-content">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">📚 <span>Espaço Acadêmico do Aluno</span></h3>
+                </div>
+                <div class="card-body">
+                    <p style="margin-bottom: 15px;">Bem-vindo à plataforma de estudos <strong>Primeiro
+                            Passo</strong>. Aqui você tem controle total sobre suas avaliações, módulos letivos e
+                        materiais didáticos.</p>
+                    <div
+                        style="background: rgba(201, 149, 42, 0.05); border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin-bottom: 25px;">
+                        <h4 style="color: var(--gold); margin-bottom: 8px;">💡 Dica de Estudo</h4>
+                        <p style="font-size: 0.9rem; color: #E2DFD8;">Acompanhe a aba de <strong>Módulos &
+                                Materiais</strong> semanalmente para baixar os PDFs das aulas e fazer as atividades
+                            recomendadas pelos instrutores.</p>
+                    </div>
+                    <div class="form-submit-container" style="justify-content: flex-start; gap: 15px;">
+                        <button class="btn btn-primary" onclick="irParaAba('tab-minhas-notas')">Ver Minhas Notas
+                            📝</button>
+                        <button class="btn btn-secondary" onclick="irParaAba('tab-modulos')">Acessar Aulas e
+                            Materiais 📖</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ABA: DASHBOARD PROFESSOR -->
+        <section id="tab-dashboard-prof" class="tab-content">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">🏫 <span>Painel de Controle do Instrutor</span></h3>
+                </div>
+                <div class="card-body">
+                    <p style="margin-bottom: 15px;">Você está logado como instrutor da plataforma acadêmica. Utilize
+                        as ferramentas de lançamento de notas e acompanhamento de documentação dos alunos.</p>
+
+                    <div
+                        style="background: rgba(201, 149, 42, 0.05); border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin-bottom: 25px;">
+                        <h4 style="color: var(--gold); margin-bottom: 8px;">⚙️ Ações Rápidas</h4>
+                        <p style="font-size: 0.9rem; color: #E2DFD8; margin-bottom: 15px;">Gerencie o progresso
+                            acadêmico dos seus alunos com as ferramentas abaixo.</p>
+                        <div class="form-submit-container" style="justify-content: flex-start; gap: 15px;">
+                            <button class="btn btn-primary" onclick="irParaAba('tab-lancar-notas')">Lançar Nova Nota
+                                ✍️</button>
+                            <button class="btn btn-secondary" onclick="irParaAba('tab-documentos-alunos')">Anexar
+                                Documento do Aluno 📂</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ABA: MINHAS NOTAS (ALUNO) -->
+        <section id="tab-minhas-notas" class="tab-content">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">📝 <span>Histórico de Notas</span></h3>
+                    <span class="badge badge-info" id="notas-count-badge">0 avaliações</span>
+                </div>
+                <div class="card-body">
+                    <div class="table-container">
+                        <table class="portal-table">
+                            <thead>
+                                <tr>
+                                    <th>Atividade / Disciplina</th>
+                                    <th>Nota obtida</th>
+                                    <th>Data de Lançamento</th>
+                                </tr>
+                            </thead>
+                            <tbody id="lista-atividades">
+                                <!-- Populado dinamicamente via JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ABA: MÓDULOS & MATERIAIS (ALUNO) -->
+        <section id="tab-modulos" class="tab-content">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">📖 <span>Módulos de Aprendizagem</span></h3>
+                </div>
+                <div class="card-body">
+                    <p style="margin-bottom: 20px; color: var(--text-muted); font-size: 0.9rem;">Clique em qualquer
+                        módulo abaixo para expandir e ter acesso às atividades e links de materiais didáticos.</p>
+
+                    <div id="lista-modulos" class="module-list">
+                        <!-- Populado dinamicamente via JS -->
+                        <div class="state-container state-loading">
+                            <span class="state-icon-large">⌛</span>
+                            <h4 class="state-title">Carregando módulos...</h4>
+                            <p class="state-subtitle">Buscando cronograma e materiais no servidor.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ABA: LANÇAR NOTAS (PROFESSOR) -->
+        <section id="tab-lancar-notas" class="tab-content">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">✍️ <span>Lançar Notas da Turma</span></h3>
+                </div>
+                <div class="card-body">
+                    <form id="form-lancar-nota" onsubmit="event.preventDefault(); executarSalvarNota();">
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="select-aluno-nota">Aluno</label>
+                                <select id="select-aluno-nota" class="form-control" required>
+                                    <option value="" disabled selected>Selecione um aluno...</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="input-atividade-nota">Atividade</label>
+                                <input type="text" id="input-atividade-nota" class="form-control"
+                                    placeholder="Ex: Prova Final, Trabalho 1" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="input-valor-nota">Nota (0 a 10)</label>
+                                <input type="number" id="input-valor-nota" class="form-control" placeholder="Ex: 8.5"
+                                    min="0" max="10" step="0.1" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="input-disciplina-nota">Disciplina / Categoria (Opcional)</label>
+                                <input type="text" id="input-disciplina-nota" class="form-control"
+                                    placeholder="Ex: Matemática, Geral">
+                            </div>
+                        </div>
+                        <div class="form-submit-container">
+                            <button type="submit" class="btn btn-primary" id="btn-salvar-nota">
+                                <span>Salvar Nota Acadêmica</span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">📜 <span>Últimas Notas Lançadas por Você</span></h3>
+                </div>
+                <div class="card-body">
+                    <div class="table-container">
+                        <table class="portal-table">
+                            <thead>
+                                <tr>
+                                    <th>Aluno</th>
+                                    <th>Atividade</th>
+                                    <th>Disciplina</th>
+                                    <th>Nota</th>
+                                    <th>Data</th>
+                                </tr>
+                            </thead>
+                            <tbody id="lista-ultimas-notas-prof">
+                                <!-- Populado dinamicamente -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ABA: DOCUMENTOS DOS ALUNOS (PROFESSOR) -->
+        <section id="tab-documentos-alunos" class="tab-content">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">📂 <span>Anexar Documento Escolar</span></h3>
+                </div>
+                <div class="card-body">
+                    <form id="form-cadastrar-documento"
+                        onsubmit="event.preventDefault(); executarCadastrarDocumento();">
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="select-aluno-doc">Aluno Vinculado</label>
+                                <select id="select-aluno-doc" class="form-control" required>
+                                    <option value="" disabled selected>Selecione o aluno...</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="select-tipo-doc">Tipo de Documento</label>
+                                <select id="select-tipo-doc" class="form-control" required>
+                                    <option value="" disabled selected>Selecione o tipo...</option>
+                                    <option value="Contrato de Matrícula">Contrato de Matrícula</option>
+                                    <option value="Histórico Acadêmico">Histórico Acadêmico</option>
+                                    <option value="Documento de Identidade">Documento de Identidade (RG/CPF)
+                                    </option>
+                                    <option value="Comprovante de Residência">Comprovante de Residência</option>
+                                    <option value="Outro">Outro Documento</option>
+                                </select>
+                            </div>
+                            <div class="form-group" style="grid-column: span 2;">
+                                <label for="input-url-doc">URL do Documento (Link PDF/Externo ou Supabase
+                                    Storage)</label>
+                                <input type="url" id="input-url-doc" class="form-control"
+                                    placeholder="https://exemplo.com/documento.pdf" required>
+                            </div>
+                        </div>
+                        <div class="form-submit-container">
+                            <button type="submit" class="btn btn-primary" id="btn-cadastrar-doc">
+                                <span>Anexar e Registrar Documento</span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">📋 <span>Lista de Documentos dos Alunos</span></h3>
+                </div>
+                <div class="card-body">
+                    <div class="table-container">
+                        <table class="portal-table">
+                            <thead>
+                                <tr>
+                                    <th>Aluno</th>
+                                    <th>Tipo de Documento</th>
+                                    <th>Data de Registro</th>
+                                    <th>Ações / Links</th>
+                                </tr>
+                            </thead>
+                            <tbody id="lista-documentos-alunos">
+                                <!-- Populado dinamicamente -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ABA: ALTERAR SENHA (COMPARTILHADA) -->
+        <section id="tab-alterar-senha" class="tab-content">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">🔑 <span>Segurança e Alteração de Senha</span></h3>
+                </div>
+                <div class="card-body" style="max-width: 500px;">
+                    <form id="form-alterar-senha" onsubmit="event.preventDefault(); executarAlterarSenha();">
+                        <div class="form-group" style="margin-bottom: 20px;">
+                            <label for="input-senha-atual">Senha Atual</label>
+                            <input type="password" id="input-senha-atual" class="form-control"
+                                placeholder="Sua senha atual" required autocomplete="current-password">
+                        </div>
+                        <div class="form-group" style="margin-bottom: 20px;">
+                            <label for="input-senha-nova">Nova Senha (Mínimo de 6 caracteres)</label>
+                            <input type="password" id="input-senha-nova" class="form-control"
+                                placeholder="Nova senha segura" required autocomplete="new-password">
+                        </div>
+                        <div class="form-group" style="margin-bottom: 25px;">
+                            <label for="input-senha-confirmar">Confirmar Nova Senha</label>
+                            <input type="password" id="input-senha-confirmar" class="form-control"
+                                placeholder="Confirme a nova senha" required autocomplete="new-password">
+                        </div>
+                        <button type="submit" class="btn btn-primary" id="btn-alterar-senha-submit">
+                            <span>Salvar Nova Senha</span>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </section>
+    </main>
+    </div>
+
+    <!-- Script de Inicialização do Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- config.js carrega chaves locais salvas fora do GitHub -->
+    <script src="config.js"></script>
+    <script src="script.js"></script>
+</body>
+
+</html>

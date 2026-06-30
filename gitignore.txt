@@ -1,0 +1,5 @@
+LOUISE_PROJEC-main/public/config.js
+node_modules/
+.env
+.env.local
+.env.*.local
