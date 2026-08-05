@@ -1,0 +1,37 @@
+-- criando
+CREATE TABLE produtos(
+id INT PRIMARY KEY,
+nome VARCHAR (200),
+preco FLOAT,
+EmEstoque INT
+);
+
+-- consultando
+SELECT*FROM produtos;
+
+-- inserindo
+INSERT INTO produtos( id, Nome, Preco, EmEstoque)VALUES(1, 'Notebook Gamer', 5899.99, 15);
+INSERT INTO produtos( id, Nome, Preco, EmEstoque)VALUES(2, 'Mouse Sem Fio', 129.50, 50);
+INSERT INTO produtos( id, Nome, Preco, EmEstoque)VALUES(3, 'Teclado Mecânico', 450.00, 25);
+
+-- atualizando
+UPDATE produtos
+SET preco =145.90
+WHERE id =2;
+
+-- excluindo
+DELETE FROM produtos
+WHERE id =3
+
+
+
+
+
+
+
+
+
+
+
+
+
