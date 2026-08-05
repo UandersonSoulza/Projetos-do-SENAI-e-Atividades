@@ -1,0 +1,65 @@
+import os
+os.system ("cls || clear")
+
+def calcular_inss(salario_base):
+    if salario_base <= 1518.00:
+        return salario_base * 0.075
+    elif salario_base <= 2793.88:
+        return salario_base * 0.09 - 113.85
+    elif salario_base <= 4190.83:
+        return salario_base * 0.12 - 189.54
+    elif salario_base <= 8157.41:
+        return salario_base * 0.14 - 318.38
+    else:
+        return 1142.04
+
+def calcular_irrf(salario_base,dependentes):
+    deducao_dependentes = dependentes * 189.59
+    base_calculo = salario_base - deducao_dependentes
+
+    if base_calculo <= 2259.20:
+        return 0
+    elif base_calculo <= 2826.65:
+        return base_calculo * 0.075 - 169.44
+    elif base_calculo <= 3751.05:
+        return base_calculo * 0.15 - 381.44
+    elif base_calculo <= 4664.68:
+        return base_calculo * 0.225 - 662.77
+    else:
+        return base_calculo * 0.275 - 896.00
+
+def calcular_descontos(salario_base, vt_opcional, vr_valor, dependentes):
+    inss = calcular_inss(salario_base)
+    irrf = calcular_irrf(salario_base, dependentes)
+    vt = salario_base * 0.06 if vt_opcional.lower() == 's' else 0
+    vr = vr_valor * 0.20
+    plano_saude = 150.00 * dependentes
+    total_descontos = inss + irrf + vt + vr + plano_saude
+    return inss, irrf, vt, vr, plano_saude, total_descontos
+
+def folha_pagamento():
+    print("|\/\ Sistema de folha de pagamento /\/|\n")
+    matricula = input("Digite a matrícula do funcionário: ")
+    senha = input("Digite a senha do funcionário: ")
+
+    salario_base = float(input("Digite o salário base: "))
+    vt_opcional = input("Deseja receber vale transporte? (S/N): ")
+    vr_valor = float(input("Digite o valor do vale refeição: "))
+    dependentes = int(input("Digite a quantidade de dependentes: "))
+
+    inss, irrf, vt, vr, plano_saude, total_descontos = calcular_descontos(salario_base, vt_opcional, vr_valor, dependentes)
+    salario_liquido = salario_base - total_descontos
+
+    os.system ("cls || clear")
+    print("\n|\/\ Resultado da folha de pagamentos /\/|")
+    print(f"Matrícula: {matricula}")
+    print(f"Salário Base: R$ {salario_base:.2f}")
+    print(f"INSS: R$ {inss:.2f}")
+    print(f"IRRF: R$ {irrf:.2f}")
+    print(f"Vale Transporte: R$ {vt:.2f}")
+    print(f"Vale Refeição: R$ {vr:.2f}")
+    print(f"Plano de Saúde: R$ {plano_saude:.2f}")
+    print(f"Total de Descontos: R$ {total_descontos:.2f}")
+    print(f"Salário Líquido: R$ {salario_liquido:.2f}")
+
+folha_pagamento()
